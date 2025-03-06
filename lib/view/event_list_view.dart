@@ -40,12 +40,12 @@ class _EventListViewState extends State<EventListView> {
           OutlinedButton(
             onPressed: () async {
               await _authService.signOut();
-
               Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LoginView(),
-                  ));
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LoginView(),
+                ),
+              );
             },
             child: const Text(
               "Logout",
@@ -72,6 +72,11 @@ class _EventListViewState extends State<EventListView> {
               .where((event) =>
                   event.date.isAfter(now.add(const Duration(hours: 24))))
               .toList();
+
+          final completedEvents = eventViewModel.events
+              .where((event) => event.date.isBefore(now))
+              .toList()
+            ..sort((a, b) => b.date.compareTo(a.date));
 
           final List<Widget> carouselWidgets = upcomingEvents24Hours.isNotEmpty
               ? [
@@ -105,6 +110,24 @@ class _EventListViewState extends State<EventListView> {
                         ),
                       ),
                       ...upcomingEventsBeyond24Hours
+                          .map((event) => EventCard(event: event)),
+                    ]
+                  : [];
+
+          final List<Widget> completedEventWidgets =
+              completedEvents.isNotEmpty
+                  ? [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          'Completed Events',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: Colors.white),
+                        ),
+                      ),
+                      ...completedEvents
                           .map((event) => EventCard(event: event)),
                     ]
                   : [];
@@ -143,6 +166,7 @@ class _EventListViewState extends State<EventListView> {
                     ],
                     ...carouselWidgets,
                     ...listWidgets,
+                    ...completedEventWidgets,
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: ElevatedButton(
